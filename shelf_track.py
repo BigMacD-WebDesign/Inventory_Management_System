@@ -65,6 +65,21 @@ def enter_book():
         print("Error: Invalid input. ID, author ID and qty must be numbers.") 
 
 
+def search_books():
+    """Search book by titles."""
+    print("\n--- Search by Title ---")
+    title = input("Enter the title you want to search: ")
+    
+    cursor.execute("SELECT * FROM book WHERE title LIKE ?", (f"%{title}%",))
+    books = cursor.fetchall()
+    
+    if not books:
+        print("Book not found.")
+    else:
+        for book in books:
+            print(f"\nFound: ID:{book[0]}, Title:'{book[1]}', Author:{book[2]}, QTY:{book[3]}\n")
+
+
 # --- Menu ---
 def display_menu():
     """Display the main menu"""
@@ -90,6 +105,8 @@ def main():
         
         if choice == "1":
             enter_book()
+        elif choice == "5":
+            search_books()
         elif choice == "0":
             print("You have chosen Option 0")
             print("Goodbye")
