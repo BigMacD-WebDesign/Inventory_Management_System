@@ -90,6 +90,72 @@ def view_all_books():
             print("\n")
 
 
+def update_book():
+    """Update book info based on title"""
+    print("\n--- Update Book ---")
+    try:
+        book_id = input("Enter book ID to update: ")
+        
+        # Check if book exists
+        cursor.execute("SELECT * FROM book WHERE id = ?", (book_id,))
+        book = cursor.fetchone()
+        
+        if not book:
+            print("Book not found.")
+            return
+        
+        print(f"\nCurrent info: ID: {book[0]}, Title='{book[1]}', Author={book[2]}, Qty={book[3]}")
+        print("\nWhat would you like to update?")
+        print("1. Title")
+        print("2. Author")
+        print("3. Quantity")
+        print("0. Cancel and return to main menu")
+        choice = input("Enter choice (default is 0 to cancel): ") or "0"
+        
+        if choice == "1":
+            new_title = input("Enter new title: ")
+            cursor.execute("UPDATE book SET title = ? WHERE id = ?", (new_title, book_id))
+            print("Title updated successfully!")
+        elif choice == "2":
+            cursor.execute("""
+                SELECT author.id, author.name, author.country
+                FROM author
+                JOIN book ON book.author_id = author.id
+                WHERE book.id = ?               
+            """, (book_id,))
+            author = cursor.fetchone()
+            
+            if not author:
+                print("Author not found for this book.")
+                return
+            print(f"\nCurrent Author Info: ")
+            print(f"ID: {author[0]}, Name: {author[1]}, Country: {author[2]}")
+            
+            # Prompt for new details (Blank = keep old)
+            new_name = input("Enter new author name (Leave blank to keep current):") or author[1]
+            new_country = input("Enter new author country (Leave blank to keep current):") or author[2]
+            
+            cursor.execute("UPDATE author SET name = ?, country = ? WHERE id = ?",
+                           (new_name, new_country, author[0]))
+            print("Author updated successfully")
+        elif choice == "3":
+            new_quantity = int(input("Enter the updated quantity: "))
+            cursor.execute("UPDATE book SET qty = ? WHERE id = ?", (new_quantity, book_id))
+            print("Quantity updated")
+        elif choice == "0":
+            print("Returning to main menu...")
+            return
+        else:
+            print("Invalid Choice.")
+            return
+        
+        conn.commit()
+    except ValueError:
+        print("Invalid input. Please enter valid numbers")
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+
+
 def delete_book():
     """Deletes book from the db"""
     print("\n--- DELETE BOOK ---")
@@ -184,6 +250,8 @@ def main():
             enter_book()
         elif choice == "2":
             view_all_books()
+        elif choice == "3":
+            update_book()
         elif choice == "4":
             delete_book()
         elif choice == "5":
