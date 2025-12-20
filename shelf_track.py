@@ -33,7 +33,7 @@ def enter_book():
             if author_choice == "1":
                 author_id = int(input("Enter the Author ID from the list above: "))
                 # Validating ID exists:
-                cursor.execute("SELECT id FROM author WHERE id = ?", (author_id))
+                cursor.execute("SELECT id FROM author WHERE id = ?", (author_id,))
                 if not cursor.fetchone():
                     print("Author ID not found.")
                     return
@@ -90,6 +90,58 @@ def view_all_books():
             print("\n")
 
 
+def delete_book():
+    """Deletes book from the db"""
+    print("\n--- DELETE BOOK ---")
+    
+    title = input("Enter title to delete: ")
+    
+    # Check if book exists
+    cursor.execute("SELECT * FROM book WHERE title LIKE ?", (f"%{title}%",))
+    results = cursor.fetchall()
+    
+    if not results:
+        print("Book not found")
+        return
+    
+    if len(results) == 1:
+        # Only one match found
+        book = results[0]
+        print(f"\nFound: ID={book[0]}, Title='{book[1]}', Author={book[2]}, Qty={book[3]}")
+        confirm = input("Delete this book? (Yes/No): ").lower()
+        
+        if confirm == "yes":
+            cursor.execute("DELETE FROM book WHERE id = ?", (book[0],))
+            conn.commit()
+            print("Book deleted successfully!")
+        else:
+            print("Deletion cancelled.")
+    else:
+        # Multiple matches - let user choose
+        print(f"\n Found {len(results)} books:")
+        for i, book in enumerate(results, 1):
+            print(f"{i}. [{book[0]}] '{book[1]}' - Author: {book[2]}, Qty: {book[3]}")
+        
+        try:
+            choice = int(input("\nWhich book to delete? (0 to cancel): "))
+            if choice == 0:
+                print("Deletion cancelled!")
+                return
+            if 1 <= choice <= len(results):
+                book = results[choice - 1]
+                confirm = input(f"Delete '{book[1]}'? (Yes/No): ").lower()
+                if confirm == 'yes':
+                    cursor.execute("DELETE FROM book WHERE id = ?", (book[0],))
+                    conn.commit()
+                    print("Book deleted successfully!")
+                else:
+                    print("Deletion Cancelled.")
+            else:
+                print("Invalid input.")
+        except ValueError:
+            print("Invalid input.")
+
+
 def search_books():
     """Search book by titles."""
     print("\n--- Search by Title ---")
@@ -132,6 +184,8 @@ def main():
             enter_book()
         elif choice == "2":
             view_all_books()
+        elif choice == "4":
+            delete_book()
         elif choice == "5":
             search_books()
         elif choice == "0":
