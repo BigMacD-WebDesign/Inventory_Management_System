@@ -65,6 +65,31 @@ def enter_book():
         print("Error: Invalid input. ID, author ID and qty must be numbers.") 
 
 
+def view_all_books():
+    """View all books in inventory"""
+    print("="*50)
+    print("\n--- ALL BOOKS --- \n")
+    print("="*50 + "\n")
+    cursor.execute("""
+        SELECT book.id, book.title, author.name, book.qty
+        FROM book
+        INNER JOIN author
+        ON book.author_id = author.id
+    """)
+    
+    books = cursor.fetchall()
+    
+    if not books:
+        print("No books in inventory.")
+        return
+    else:
+        print(f"{'ID':<10}{'Title':<50}{'AuthorID':<25}{'Qty':<10}")
+        print("="*100 + "\n")
+        for book_id, title, author_name, qty in books:
+            print(f"{book_id:<10}{title:<50}{author_name:<25}{qty:<25}")
+            print("\n")
+
+
 def search_books():
     """Search book by titles."""
     print("\n--- Search by Title ---")
@@ -105,6 +130,8 @@ def main():
         
         if choice == "1":
             enter_book()
+        elif choice == "2":
+            view_all_books()
         elif choice == "5":
             search_books()
         elif choice == "0":
